@@ -1,0 +1,476 @@
+NO_SQL_ACADEMY.TXT
+==================
+
+---------------------------------------
+Розраховано на Dev-сервер: http://127.0.0.1:8080, база: academy_db.
+---------------------------------------
+
+Передумови
+----------
+1) RavenDB 7.x у Dev-режимі (Studio: http://localhost:8080).
+2) Базу можна створити в Studio (Databases → New Database → academy_db)
+   або авто-створити на першому PUT (ми додаємо ?createDatabase=true).
+3) Скрипт нижче можна виконати в PowerShell на Windows.
+
+───────────────────────────────────────────────────────────────────────────────
+1) Заповнення (seed) документів: PowerShell + REST
+───────────────────────────────────────────────────────────────────────────────
+
+# Відкрий PowerShell у Windows та виконай все як один блок:
+
+$HostUrl = "http://127.0.0.1:8080"
+$Db      = "academy_db"
+
+function Put-Doc([string]$id, [string]$json) {
+  $uri = "$HostUrl/databases/$Db/docs?id=$([uri]::EscapeDataString($id))&createDatabase=true"
+  Invoke-WebRequest -Method PUT -Uri $uri -ContentType "application/json" -Body $json | Out-Null
+  Write-Host "PUT  $id" -ForegroundColor Green
+}
+
+# ── Users ────────────────────────────────────────────────────────────────────
+
+$admin = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Admin User",
+  "email": "admin@academy.local",
+  "role": "admin",
+  "createdAt": "2025-11-04T10:00:00Z",
+  "admin": {
+    "permissions": [ "manage-users", "manage-courses", "reports" ]
+  }
+}
+"@
+Put-Doc "users/1" $admin
+
+$teacher1 = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Олена Викладач",
+  "email": "olena.teacher@academy.local",
+  "role": "teacher",
+  "createdAt": "2025-11-04T10:05:00Z",
+  "teacher": {
+    "bio": "Викладач програмування",
+    "experience": 7,
+    "maxMentees": 5
+  }
+}
+"@
+Put-Doc "users/2" $teacher1
+
+$teacher2 = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Ігор Викладач",
+  "email": "ihor.teacher@academy.local",
+  "role": "teacher",
+  "createdAt": "2025-11-04T10:06:00Z",
+  "teacher": {
+    "bio": "Бази даних та SQL",
+    "experience": 5,
+    "maxMentees": 4
+  }
+}
+"@
+Put-Doc "users/3" $teacher2
+
+$student1 = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Студент 1",
+  "email": "student1@academy.local",
+  "role": "student",
+  "createdAt": "2025-11-04T10:10:00Z",
+  "mentorId": "users/2",
+  "student": {
+    "group": "KNU-21",
+    "yearOfStudy": 2
+  }
+}
+"@
+Put-Doc "users/4" $student1
+
+$student2 = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Студент 2",
+  "email": "student2@academy.local",
+  "role": "student",
+  "createdAt": "2025-11-04T10:11:00Z",
+  "mentorId": "users/2",
+  "student": {
+    "group": "KNU-21",
+    "yearOfStudy": 1
+  }
+}
+"@
+Put-Doc "users/5" $student2
+
+$student3 = @"
+{
+  "@metadata": { "@collection": "Users" },
+  "name": "Студент 3",
+  "email": "student3@academy.local",
+  "role": "student",
+  "createdAt": "2025-11-04T10:12:00Z",
+  "mentorId": "users/3",
+  "student": {
+    "group": "KNU-22",
+    "yearOfStudy": 1
+  }
+}
+"@
+Put-Doc "users/6" $student3
+
+# ── Courses ──────────────────────────────────────────────────────────────────
+
+$course1 = @"
+{
+  "@metadata": { "@collection": "Courses" },
+  "title": "Основи програмування",
+  "language": "uk",
+  "level": "beginner",
+  "price": 0,
+  "teacherIds": ["users/2"]
+}
+"@
+Put-Doc "courses/1" $course1
+
+$course2 = @"
+{
+  "@metadata": { "@collection": "Courses" },
+  "title": "Бази даних і SQL",
+  "language": "uk",
+  "level": "intermediate",
+  "price": 1500.00,
+  "teacherIds": ["users/3"]
+}
+"@
+Put-Doc "courses/2" $course2
+
+# ── Modules ──────────────────────────────────────────────────────────────────
+
+$module1 = @"
+{
+  "@metadata": { "@collection": "Modules" },
+  "courseId": "courses/1",
+  "title": "Вступ до програмування",
+  "order": 1
+}
+"@
+Put-Doc "modules/1" $module1
+
+$module2 = @"
+{
+  "@metadata": { "@collection": "Modules" },
+  "courseId": "courses/1",
+  "title": "Типи даних і умови",
+  "order": 2
+}
+"@
+Put-Doc "modules/2" $module2
+
+$module3 = @"
+{
+  "@metadata": { "@collection": "Modules" },
+  "courseId": "courses/2",
+  "title": "Вступ до БД",
+  "order": 1
+}
+"@
+Put-Doc "modules/3" $module3
+
+$module4 = @"
+{
+  "@metadata": { "@collection": "Modules" },
+  "courseId": "courses/2",
+  "title": "SQL запити",
+  "order": 2
+}
+"@
+Put-Doc "modules/4" $module4
+
+# ── Lessons ──────────────────────────────────────────────────────────────────
+
+$lesson1 = @"
+{
+  "@metadata": { "@collection": "Lessons" },
+  "moduleId": "modules/1",
+  "title": "Що таке програма",
+  "duration": 30,
+  "order": 1,
+  "tagIds": []
+}
+"@
+Put-Doc "lessons/1" $lesson1
+
+$lesson2 = @"
+{
+  "@metadata": { "@collection": "Lessons" },
+  "moduleId": "modules/1",
+  "title": "Середовище розробки",
+  "duration": 25,
+  "order": 2,
+  "tagIds": []
+}
+"@
+Put-Doc "lessons/2" $lesson2
+
+$lesson3 = @"
+{
+  "@metadata": { "@collection": "Lessons" },
+  "moduleId": "modules/2",
+  "title": "Умовні оператори",
+  "duration": 40,
+  "order": 1,
+  "tagIds": []
+}
+"@
+Put-Doc "lessons/3" $lesson3
+
+$lesson4 = @"
+{
+  "@metadata": { "@collection": "Lessons" },
+  "moduleId": "modules/3",
+  "title": "Модель таблиця-рядок-стовпець",
+  "duration": 35,
+  "order": 1,
+  "tagIds": []
+}
+"@
+Put-Doc "lessons/4" $lesson4
+
+$lesson5 = @"
+{
+  "@metadata": { "@collection": "Lessons" },
+  "moduleId": "modules/4",
+  "title": "SELECT базовий",
+  "duration": 45,
+  "order": 1,
+  "tagIds": []
+}
+"@
+Put-Doc "lessons/5" $lesson5
+
+# ── Tags ─────────────────────────────────────────────────────────────────────
+
+$tag1 = @"
+{
+  "@metadata": { "@collection": "Tags" },
+  "name": "beginner"
+}
+"@
+Put-Doc "tags/1" $tag1
+
+$tag2 = @"
+{
+  "@metadata": { "@collection": "Tags" },
+  "name": "programming"
+}
+"@
+Put-Doc "tags/2" $tag2
+
+$tag3 = @"
+{
+  "@metadata": { "@collection": "Tags" },
+  "name": "database"
+}
+"@
+Put-Doc "tags/3" $tag3
+
+# оновимо 1-й і 5-й уроки вручну потім у Studio або окремим PATCH
+
+# ── Enrollments ──────────────────────────────────────────────────────────────
+
+$en1 = @"
+{
+  "@metadata": { "@collection": "Enrollments" },
+  "userId": "users/4",
+  "courseId": "courses/1",
+  "enrolledAt": "2025-11-04T11:00:00Z",
+  "status": "completed"
+}
+"@
+Put-Doc "enrollments/1" $en1
+
+$en2 = @"
+{
+  "@metadata": { "@collection": "Enrollments" },
+  "userId": "users/5",
+  "courseId": "courses/1",
+  "enrolledAt": "2025-11-04T11:05:00Z",
+  "status": "active"
+}
+"@
+Put-Doc "enrollments/2" $en2
+
+$en3 = @"
+{
+  "@metadata": { "@collection": "Enrollments" },
+  "userId": "users/6",
+  "courseId": "courses/1",
+  "enrolledAt": "2025-11-04T11:10:00Z",
+  "status": "active"
+}
+"@
+Put-Doc "enrollments/3" $en3
+
+$en4 = @"
+{
+  "@metadata": { "@collection": "Enrollments" },
+  "userId": "users/6",
+  "courseId": "courses/2",
+  "enrolledAt": "2025-11-04T11:15:00Z",
+  "status": "completed"
+}
+"@
+Put-Doc "enrollments/4" $en4
+
+# ── Certificates ─────────────────────────────────────────────────────────────
+
+$cert1 = @"
+{
+  "@metadata": { "@collection": "Certificates" },
+  "enrollmentId": "enrollments/1",
+  "issuedAt": "2025-11-04T12:00:00Z",
+  "code": "CERT-OSN-0001"
+}
+"@
+Put-Doc "certificates/1" $cert1
+
+$cert2 = @"
+{
+  "@metadata": { "@collection": "Certificates" },
+  "enrollmentId": "enrollments/4",
+  "issuedAt": "2025-11-04T12:05:00Z",
+  "code": "CERT-SQL-0001"
+}
+"@
+Put-Doc "certificates/2" $cert2
+
+# ── Reviews ──────────────────────────────────────────────────────────────────
+
+$rev1 = @"
+{
+  "@metadata": { "@collection": "Reviews" },
+  "userId": "users/4",
+  "courseId": "courses/1",
+  "rating": 5,
+  "comment": "Дуже зрозуміло пояснено!",
+  "createdAt": "2025-11-04T12:10:00Z"
+}
+"@
+Put-Doc "reviews/1" $rev1
+
+$rev2 = @"
+{
+  "@metadata": { "@collection": "Reviews" },
+  "userId": "users/6",
+  "courseId": "courses/2",
+  "rating": 4,
+  "comment": "Хотілося б більше прикладів.",
+  "createdAt": "2025-11-04T12:12:00Z"
+}
+"@
+Put-Doc "reviews/2" $rev2
+
+# ── LessonGrades (тернарний зв’язок) ─────────────────────────────────────────
+
+$lg1 = @"
+{
+  "@metadata": { "@collection": "LessonGrades" },
+  "studentId": "users/4",
+  "lessonId": "lessons/1",
+  "teacherId": "users/2",
+  "score": 95.5,
+  "gradedAt": "2025-11-04T12:20:00Z"
+}
+"@
+Put-Doc "lessongrades/1" $lg1
+
+$lg2 = @"
+{
+  "@metadata": { "@collection": "LessonGrades" },
+  "studentId": "users/6",
+  "lessonId": "lessons/5",
+  "teacherId": "users/3",
+  "score": 88.0,
+  "gradedAt": "2025-11-04T12:22:00Z"
+}
+"@
+Put-Doc "lessongrades/2" $lg2
+
+Write-Host "`nSeed academy_db завершено. Перевір у Studio (Documents)." -ForegroundColor Cyan
+
+───────────────────────────────────────────────────────────────────────────────
+2) Корисні RQL-запити для перевірки
+───────────────────────────────────────────────────────────────────────────────
+
+# 2.1. Всі студенти
+from Users
+where role = 'student'
+
+# 2.2. Всі викладачі з досвідом
+from Users
+where role = 'teacher' and teacher.experience >= 5
+select name, email, teacher
+
+# 2.3. Записи на курс 'courses/1'
+from Enrollments
+where courseId = 'courses/1'
+include userId
+
+# 2.4. Оцінки певного студента
+from LessonGrades
+where studentId = 'users/4'
+order by gradedAt desc
+
+# 2.5. "Псевдо-JOIN" на Enrollments
+from Enrollments as e
+load e.userId as u, e.courseId as c
+select {
+  userName: u.name,
+  courseTitle: c.title,
+  status: e.status,
+  enrolledAt: e.enrolledAt
+}
+
+# 2.6. Пошук курсів за частиною назви
+from Courses
+where search(title, 'програм*')
+
+# 2.7. Перелік усіх документів з колекціями
+from @all_docs as d
+order by id()
+select { id: id(d), coll: metadata(d)['@collection'] }
+
+───────────────────────────────────────────────────────────────────────────────
+3) (Опційно) Статичний індекс Enrollments/ByUserAndCourse
+───────────────────────────────────────────────────────────────────────────────
+
+$indexDef = @"
+{
+  "Name": "Enrollments/ByUserAndCourse",
+  "Maps": [
+    "from e in docs.Enrollments select new { e.userId, e.courseId, e.status, e.enrolledAt }"
+  ]
+}
+"@
+Invoke-WebRequest -Method PUT `
+  -Uri "$HostUrl/databases/$Db/indexes?name=Enrollments/ByUserAndCourse" `
+  -ContentType "application/json" -Body $indexDef | Out-Null
+Write-Host "Індекс 'Enrollments/ByUserAndCourse' створено." -ForegroundColor Green
+
+# Приклад запиту по індексу:
+from index 'Enrollments/ByUserAndCourse'
+where userId = 'users/4'
+order by enrolledAt desc
+
+───────────────────────────────────────────────────────────────────────────────
+4) Експорт (Smuggler) — якщо потрібен дамп/JSON
+───────────────────────────────────────────────────────────────────────────────
+# У Studio: Tasks → Export Database → вибрати academy_db → Documents only → JSON.
+# або CLI (адаптуй шляхи):
+# .\Raven.Smuggler.exe export --url http://127.0.0.1:8080 --database academy_db --file C:\backups\academy_db.json --operate-on-documents
+
