@@ -1,0 +1,57 @@
+[
+	{
+		"name": "Admin User",
+		"email": "admin@academy.local",
+		"role": "admin",
+		"createdAt": "2025-11-04T10:00:00Z",
+		"admin": { "permissions": ["manage-users", "manage-courses", "reports"] },
+		"@metadata": { "@collection": "Users" }
+	},
+	{
+		"name": "Олена Викладач",
+		"email": "olena.teacher@academy.local",
+		"role": "teacher",
+		"createdAt": "2025-11-04T10:05:00Z",
+		"teacher": {
+			"bio": "Викладач програмування",
+			"experience": 7,
+			"maxMentees": 5
+		},
+		"@metadata": { "@collection": "Users" }
+	},
+	{
+		"name": "Ігор Викладач",
+		"email": "ihor.teacher@academy.local",
+		"role": "teacher",
+		"createdAt": "2025-11-04T10:06:00Z",
+		"teacher": { "bio": "Бази даних та SQL", "experience": 5, "maxMentees": 4 },
+		"@metadata": { "@collection": "Users" }
+	},
+	{
+		"name": "Студент 1",
+		"email": "student1@academy.local",
+		"role": "student",
+		"createdAt": "2025-11-04T10:10:00Z",
+		"mentorId": "users/2",
+		"student": { "group": "KNU-21", "yearOfStudy": 2 },
+		"@metadata": { "@collection": "Users" }
+	},
+	{
+		"name": "Студент 2",
+		"email": "student2@academy.local",
+		"role": "student",
+		"createdAt": "2025-11-04T10:11:00Z",
+		"mentorId": "users/2",
+		"student": { "group": "KNU-21", "yearOfStudy": 1 },
+		"@metadata": { "@collection": "Users" }
+	},
+	{
+		"name": "Студент 3",
+		"email": "student3@academy.local",
+		"role": "student",
+		"createdAt": "2025-11-04T10:12:00Z",
+		"mentorId": "users/3",
+		"student": { "group": "KNU-22", "yearOfStudy": 1 },
+		"@metadata": { "@collection": "Users" }
+	}
+]
