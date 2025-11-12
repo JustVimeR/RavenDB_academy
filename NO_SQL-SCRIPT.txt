@@ -8,15 +8,11 @@ NO_SQL_ACADEMY.TXT
 Передумови
 ----------
 1) RavenDB 7.x у Dev-режимі (Studio: http://localhost:8080).
-2) Базу можна створити в Studio (Databases → New Database → academy_db)
-   або авто-створити на першому PUT (ми додаємо ?createDatabase=true).
-3) Скрипт нижче можна виконати в PowerShell на Windows.
+2) Скрипт нижче можна виконати в PowerShell на Windows.
 
 ───────────────────────────────────────────────────────────────────────────────
 1) Заповнення (seed) документів: PowerShell + REST
 ───────────────────────────────────────────────────────────────────────────────
-
-# Відкрий PowerShell у Windows та виконай все як один блок:
 
 $HostUrl = "http://127.0.0.1:8080"
 $Db      = "academy_db"
@@ -473,4 +469,5 @@ order by enrolledAt desc
 # У Studio: Tasks → Export Database → вибрати academy_db → Documents only → JSON.
 # або CLI (адаптуй шляхи):
 # .\Raven.Smuggler.exe export --url http://127.0.0.1:8080 --database academy_db --file C:\backups\academy_db.json --operate-on-documents
+
 
